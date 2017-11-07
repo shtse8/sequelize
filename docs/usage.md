@@ -52,12 +52,12 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   logging: false,
  
   // the sql dialect of the database
-  // - currently supported: 'mysql', 'sqlite', 'postgres', 'mssql'
+  // - currently supported: 'mysql', 'sqlite', 'postgres', 'mssql', 'oracle'
   dialect: 'mysql',
  
   // you can also pass any dialect options to the underlying dialect library
   // - default is empty
-  // - currently supported: 'mysql', 'postgres', 'mssql'
+  // - currently supported: 'mysql', 'postgres', 'mssql', 'oracle'
   dialectOptions: {
     socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock',
     supportBigNumbers: true,
@@ -222,6 +222,20 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   dialect: 'mssql'
 })
 ```
+
+### Oracle
+
+The library for Oracle is`oracledb@^1.13.1` You'll just need to define the dialect:
+
+```js
+const sequelize = new Sequelize('database', 'username', 'password', {
+  dialect: 'oracle'
+})
+```
+
+As Oracle 12.1 limits the length of alias names to 30 characters, some requests are rebuilt.
+Oracle 12.2 supports alias names up to 128 characters, request rebuilding is not done for this version.
+To see the rebuilt request, add in dialectOptions : ``` logAliasesQry : true ```
 
 ## Executing raw SQL queries
 

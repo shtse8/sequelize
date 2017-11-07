@@ -7,6 +7,7 @@ services:
      - mysql-57
      - postgres-95
      - mssql
+     - oracle-12c
     volumes:
       - .:/sequelize
     environment:
@@ -21,8 +22,6 @@ services:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
       POSTGRES_DB: sequelize_test
-    volumes:
-      - /mnt/sequelize-ramdisk:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:8998:5432"
     container_name: postgres-95
@@ -35,12 +34,16 @@ services:
       MYSQL_DATABASE: sequelize_test
       MYSQL_USER: sequelize_test
       MYSQL_PASSWORD: sequelize_test
-    volumes:
-      - /mnt/sequelize-ramdisk:/var/lib/mysql
     ports:
       - "127.0.0.1:8999:3306"
     container_name: mysql-57
 
+  oracle-12c:
+    image: konnecteam/oracle12c-database-sequelize
+    ports:
+      - "127.0.0.1:1521:1521"
+    container_name: oracle-12c
+    
   # MSSQL
   mssql:
     image: microsoft/mssql-server-linux:latest

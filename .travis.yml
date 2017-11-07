@@ -29,15 +29,38 @@ env:
     - SEQ_PG_PW=sequelize_test
     - SEQ_PG_HOST=127.0.0.1
     - SEQ_PG_PORT=8998
+    # oracle info
+    - NODE_ORACLEDB_HOST: localhost
+
+before_install:
+  - |
+    if [ $ORACLE_VER ]; then 
+      mkdir -p /opt/oracle && 
+      cd /opt/oracle && 
+      wget https://s3.amazonaws.com/sequelize/instantclient-basic-linux.x64-12.2.0.1.0.zip &&
+      wget https://s3.amazonaws.com/sequelize/instantclient-sdk-linux.x64-12.2.0.1.0.zip &&
+      unzip instantclient-basic-linux.x64-12.2.0.1.0.zip &&
+      unzip instantclient-sdk-linux.x64-12.2.0.1.0.zip &&
+      mv instantclient_12_2 instantclient &&
+      cd instantclient && 
+      ln -s libclntsh.so.12.1 libclntsh.so &&
+      export LD_LIBRARY_PATH=/opt/oracle/instantclient:$LD_LIBRARY_PATH &&
+      cd $TRAVIS_BUILD_DIR;
+    fi
 
 before_script:
   # mount ramdisk
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mkdir /mnt/sequelize-ramdisk; fi"
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mount -t ramfs tmpfs /mnt/sequelize-ramdisk; fi"
   # setup docker
-  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
+  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ] || [ $ORACLE_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER} ${ORACLE_VER}; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
+  - |
+    if [ $ORACLE_VER ]; then 
+      docker run --link ${ORACLE_VER}:db -e CHECK_PORT=1521 -e CHECK_HOST=db --net sequelize_default giorgos/takis
+      sleep 20
+    fi
 
 script:
   - npm run lint
@@ -45,6 +68,12 @@ script:
 
 jobs:
   include:
+    - stage: tests
+      node_js: 4
+      env: ORACLE_VER=oracle-12c DIALECT=oracle
+    - stage: tests
+      node_js: 6
+      env: ORACLE_VER=oracle-12c DIALECT=oracle COVERAGE=true
     - stage: tests
       node_js: 4
       env: DIALECT=sqlite COVERAGE=true
